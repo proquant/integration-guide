@@ -117,11 +117,11 @@ All Events have common structure and properties:
 | INTEGRATION_APPROVED | The user approved the integration request | `null` |
 | INTEGRATION_REJECTED | The user rejected the integration request | `null` |
 | INTEGRATION_DELETED | The user deleted a previously approved integration | `null` |
-| STRATEGY_ENABLED | The user enabled the integration for one of their strategies. Enabling an integration means that whenever the strategy produces signals, they will be sent to that integration as Events. | [Strategy Event Data](#v1-strategy-event-data) |
-| STRATEGY_DISABLED | The user disabled the integration for one of their strategies. Disabling an integration means that the integration will stop receiving signal Events from this strategy | [Strategy Event Data](#v1-strategy-event-data)
-| SIGNAL_OPEN | One of the user's running strategies produced a signal to open a position. | [Signal Event Data](#v1-signal-event-data) |
-| SIGNAL_CLOSE | One of the user's running strategies produced a signal to close its opened position. | [Signal Event Data](#v1-signal-event-data)
-| SIGNAL_REOPEN | One of the user's running strategies produced a signal to close its opened position and then immediately open a new one in the opposite direction (the `direction` property in the data signifies the *new* position direction). | [Signal Event Data](#v1-signal-event-data)
+| STRATEGY_ENABLED | The user enabled the integration for one of their strategies. Enabling an integration means that whenever the strategy produces signals, they will be sent to that integration as Events. | [StrategyEventData](#v1-strategy-event-data) |
+| STRATEGY_DISABLED | The user disabled the integration for one of their strategies. Disabling an integration means that the integration will stop receiving signal Events from this strategy | [StrategyEventData](#v1-strategy-event-data)
+| SIGNAL_OPEN | One of the user's running strategies produced a signal to open a position. | [SignalEventData](#v1-signal-event-data) |
+| SIGNAL_CLOSE | One of the user's running strategies produced a signal to close its opened position. | [SignalEventData](#v1-signal-event-data)
+| SIGNAL_REOPEN | One of the user's running strategies produced a signal to close its opened position and then immediately open a new one in the opposite direction (the `direction` property in the data signifies the *new* position direction). | [SignalEventData](#v1-signal-event-data)
 
 ##### v1 Strategy Event Data
 ```
