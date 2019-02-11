@@ -12,26 +12,27 @@ Let's look at how to connect these accounts, so that the user's ProQuant strateg
 Every time a ProQuant strategy generates a signal, a simulated position is opened/closed in ProQuant's system, but no actual trading is happening. As we're not an execution engine, all we can do is package certain Events happening in our system and send them to whatever Integrations the user has turned on for their strategy.
 
 The goal of the guide is to show how to:
-1. Create an integration request from your system to ProQuant's, for a user's account
-2. Handle received events
-3. Respond to received events
+1. Create an Integration request
+2. Handle received Events
+3. Respond to received Events
 
 # Requirements
-The only requirement is that you provide us with a reachable URL for us to send HTTP POST requests to. These requests are the mechanism for delivering events to you, which is the essence of how the communication layer of a ProQuant integration works.
+The only requirement is that you provide us with a URL for us to send HTTP POST requests to. These requests are the mechanism for delivering Events to you, which is the essence of how the communication layer of a ProQuant integration works.
 
 # What's an Integration?
-Here's what an Integration looks like:
+An Integration is data that describes a destination for ProQuant Events to be delivered to:
+
 ```javascript
-    {
-        userEmail, // The e-mail the user created their ProQuant account with.
-        name, // used for visualisation
-        description, // used for visualisation
-        imageUrl, // used for visualisation
-        webhook: {
-            url, // where we send Events to
-            headers // the headers we include in every POST request we make to the url above
-        }
+{
+    userEmail, // The e-mail the user created their ProQuant account with.
+    name, // used for visualisation
+    description, // used for visualisation
+    imageUrl, // used for visualisation
+    webhook: {
+        url, // where we send Events to
+        headers // the headers we include in every POST request we make to the url above
     }
+}
 ```
 
 All of these properties above are defined by you, at the moment of creating the integration.
@@ -57,17 +58,17 @@ The request for creating an *integration request*:
 }
 ```
 
-Once the user has *approved* the integration from inside ProQuant's mobile app, the setup is done and they may enable this integration for one or more of their running strategies.
+Once the user has *approved* the integration from inside ProQuant's mobile application, the setup is done and they may enable this integration for one or more of their running strategies.
 
-At this point, Events will start arriving at the `webhook.url` address.
+At this point, Events will start arriving at `webhook.url`.
 
 # Handling Events
-Before we talk about the Events themselves, let's first take a look at *versioning*.
+Let's first take a look at how *versioning* works.
 
 ### Versioning
-Every request we send to `webhook.url` includes a single event, formatted in all currently supported version formats, alongside meta information about the status of every single version. It is your responsibility, as a developer, to track when the version you're using is going to be deprecated, and upgrade to a newer one before that happens.
+In order to achieve backwards-compatibility, when breaking changes must be made, a simple versioning system must be adhered to when consuming ProQuant Events.
 
-Here's how this looks in practice:
+Every request we send to `webhook.url` includes a single event, formatted in all currently supported version formats, alongside meta information about the status of every single version:
 
 POST `webhook.url` Request payload
 ```
@@ -89,7 +90,7 @@ POST `webhook.url` Request payload
 
 *DISCLAIMER: The above is just an example, you can find our currently supported versions and their deprecation status further in the guide*
 
-In the example above, we support 2 versions - v1 and v2. The deprecation parameter signifies the status of the version - if deprecation is null, that means this version is the latest and is actively supported and maintained by us. However, deprecation could be a date in the ISO format - in that case, this version is no longer supported by us, and, after the specified date has passed, data for this version will no longer be included in any requests we send your way. It is your responsibility to check for the value of the deprecation parameter for the version of our API you've currently implemented, and make an effort to implement the latest version so as not to break your client's integrations.
+In the example above we support two versions - `v1` and `v2`. `deprecation` signifies the status of the version - if `null`, this version is the latest and actively supported and maintained by us. However, `deprecation` could be a date in the ISO format - in that case, this version is no longer supported by us, and, after the specified date has passed, data for this version will no longer be included in any requests we send your way. It is your responsibility to track the value of `deprecation` and make steps towards implementing the latest version so as not to break your client's integrations.
 
 New versions will be released when breaking, non-backwards-compatible changes are introduced. This should happen rarely, if at all, and support for old versions will be continued long enough to allow you to upgrade without rush.
 
@@ -99,9 +100,7 @@ New versions will be released when breaking, non-backwards-compatible changes ar
 | v1 | Active | - |
 
 ### v1 Event Structure
-All Events have common structure and properties, so we'll begin by taking a look at that.
-
-Basic Event structure (JSON):
+All Events have common structure and properties:
 ```
 {
     "timestamp": 1549623690730, // UNIX-timestamp in milliseconds
@@ -182,7 +181,7 @@ Here's an example request payload you may receive at `webhook.url`, taking every
 }
 ```
 
-We've covered what Events are and what type of Events you may receive from ProQuant. All that's left is to see how to respond to these HTTP requests.
+We've covered what Events are and what type of ProQuant Events you may receive. Finally, let's look at how to appropriately respond to the HTTP Requests we send your way.
 
 # Responding to Events
 If all goes well and the Event has been handled successfully, *or is irrelevant to you and you did not consume/handle it at all*, simply respond with status code 200 and an empty body.
@@ -207,9 +206,18 @@ g. MarketClosed
 h. PositionNotFound
 i. InvalidCredentials
 
- 
-If you have a type of error in mind that we do not support, feel free to contact us, or open an issue, and we'll look into adding support for it.
+| Type | When to use |
+| ------ | ------ |
+| InsufficientFunds | The user's account in your system did not have enough funds to handle the SIGNAL_OPEN Event. |
+| QuantityTooLow | The requested quantity in the SIGNAL_OPEN event is lower than the minimum allowed in your system, for the requested ticker |
+| QuantityTooHigh | The requested quantity in the SIGNAL_OPEN event is higher than the maximum allowed in your system, for the requested ticker  |
+| InvalidQuantityPrecision | The requested quantity's precision in the SIGNAL_OPEN event is not supported by your system (e.g. buying 0.0001 units of XAUUSD |
+| UnsupportedInstrument | The requested instrument in the SIGNAL_OPEN event is not supported by your system |
+| PositionAlreadyExists | A strategy can have up to 1 positions open at any given time. If you receive SIGNAL_OPEN from a strategy that already has an open position in your system, you should error out with PositionAlreadyExists. |
+| MarketClosed | You received SIGNAL_OPEN or SIGNAL_CLOSED, but the market is closed according to your system, and you cannot execute the trade |
+| PositionNotFound | You received SIGNAL_CLOSED but there isn't any open position from this strategy in your system |
+| InvalidCredentials | You weren't able to identify and/or authorize the user this Event was meant for |
 
 # Thanks!
 
-That's it for the guide, thank you for reading! If you have any questions, feel free to either open an issue here, or send us a mail at support@proquant.com
+That's it for the guide, thank you for reading! If you have any suggestions or questions, feel free to either open an issue here, or send us an e-mail at support@proquant.com
