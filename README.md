@@ -64,7 +64,7 @@ At this point, Events will start arriving at `webhook.url`.
 Let's first take a look at how *versioning* works.
 
 ### Versioning
-In order to achieve backwards-compatibility, when breaking changes must be made, a simple versioning system must be adhered to when consuming ProQuant Events.
+In order to achieve backwards-compatibility, a simple versioning system must be adhered to when consuming ProQuant Events.
 
 Every request we send to `webhook.url` includes a single Event, formatted in all currently supported version formats, alongside meta information about the status of every single version:
 
@@ -86,9 +86,9 @@ POST `webhook.url` Request payload
 }
 ```
 
-*DISCLAIMER: The above is just an example, you can find our currently supported versions and their deprecation status further in the guide*
+*DISCLAIMER: The above is just an example, you can find our currently supported versions and their deprecation status below*
 
-In the example above we support two versions - `v1` and `v2`. `deprecation` signifies the status of the version - if `null`, this version is the latest and actively supported and maintained by us. However, `deprecation` could be a date in the ISO format - in that case, this version is no longer supported by us, and, after the specified date has passed, data for this version will no longer be included in any requests we send your way. It is your responsibility to track the value of `deprecation` and make steps towards implementing the latest version so as not to break your client's Integrations.
+In the example above we support two versions - `v1` and `v2`. `deprecation` signifies the status of the version - if `null`, this version is the latest and is actively supported and maintained by us. However, `deprecation` could be a date in the ISO format - in that case, this version is no longer supported by us, and, from the specified date onwards, data for this version will no longer be included in any requests we send your way. It is your responsibility to track the value of `deprecation` and make steps toward implementing the latest version so as not to break your client's Integrations.
 
 New versions will be released when breaking, non-backwards-compatible changes are introduced. This should happen rarely, if at all, and support for old versions will be continued long enough to allow you to upgrade without rush.
 
@@ -98,7 +98,7 @@ New versions will be released when breaking, non-backwards-compatible changes ar
 | v1 | Active | - |
 
 ### v1 Event Structure
-All Events have common structure and properties:
+All Events have a common structure:
 ```
 {
     "timestamp": 1549623690730, // UNIX-timestamp in milliseconds
@@ -114,7 +114,7 @@ All Events have common structure and properties:
 | ------ | ------ | ------ |
 | INTEGRATION_APPROVED | The user approved the Integration request | `null` |
 | INTEGRATION_REJECTED | The user rejected the Integration request | `null` |
-| INTEGRATION_DELETED | The user deleted a previously approved Integration | `null` |
+| INTEGRATION_DELETED | The user deleted the previously approved Integration | `null` |
 | STRATEGY_ENABLED | The user enabled the Integration for one of their strategies. Enabling an Integration means that whenever the strategy produces signals, they will be sent to that Integration as Events. | [StrategyEventData](#v1-strategy-event-data) |
 | STRATEGY_DISABLED | The user disabled the Integration for one of their strategies. Disabling an Integration means that the Integration will stop receiving signal Events from this strategy | [StrategyEventData](#v1-strategy-event-data)
 | SIGNAL_OPEN | One of the user's running strategies produced a signal to open a position. | [SignalEventData](#v1-signal-event-data) |
@@ -186,7 +186,7 @@ If all goes well and the Event has been handled successfully, *or is irrelevant 
 
 In case of an error, ProQuant clients will receive a push notification informing them that something went wrong with the Integration. What this notification will be, depends on the way you respond to the request. We understand, handle and support a predefined set of responses, which translate into well-designed errors shown to clients. If you respond with a status code >= 400 and we do not support that type of response, we will fall back to a Generic error notification.
 
-Implementing and returning these specific Event Errors is optional, but recommended, as it would give clients a better overview of what went wrong with their Integration.
+Implementing and returning these specific Event Errors is optional, but recommended, as it would give clients a better overview of what happened, should something go wrong with their Integration.
 
 Here are the requirements for an error response to be correctly parsed by us:
 
@@ -194,15 +194,6 @@ Here are the requirements for an error response to be correctly parsed by us:
 2. Content type must be `application/json`
 3. The response headers must include the header `x-proquant-error: 1`
 4. The response body must include a key `type` with one of the following values:
-a. InsufficientFunds
-b. QuantityTooLow
-c. QuantityTooHigh
-d. InvalidQuantityPrecision
-e. UnsupportedInstrument
-f. PositionAlreadyExists
-g. MarketClosed
-h. PositionNotFound
-i. InvalidCredentials
 
 | Type | When to use |
 | ------ | ------ |
@@ -212,8 +203,8 @@ i. InvalidCredentials
 | InvalidQuantityPrecision | The requested quantity's precision in the SIGNAL_OPEN Event is not supported by your system (e.g. buying 0.0001 units of XAUUSD |
 | UnsupportedInstrument | The requested instrument in the SIGNAL_OPEN Event is not supported by your system |
 | PositionAlreadyExists | A strategy can have up to 1 positions open at any given time. If you receive SIGNAL_OPEN from a strategy that already has an open position in your system, you should error out with PositionAlreadyExists. |
-| MarketClosed | You received SIGNAL_OPEN or SIGNAL_CLOSED, but the market is closed according to your system, and you cannot execute the trade |
-| PositionNotFound | You received SIGNAL_CLOSED but there isn't any open position from this strategy in your system |
+| MarketClosed | You received SIGNAL_OPEN or SIGNAL_CLOSE, but the market is closed according to your system, and you cannot execute the trade |
+| PositionNotFound | You received SIGNAL_CLOSE but there isn't any open position from this strategy in your system |
 | InvalidCredentials | You weren't able to identify and/or authorize the user this Event was meant for |
 
 # Thanks!
