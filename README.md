@@ -35,14 +35,12 @@ An Integration is data that describes a destination for ProQuant Events to be de
 }
 ```
 
-All of these properties above are defined by you, at the moment of creating the integration.
+All of these properties above are defined by you, at the moment of creating the Integration.
 
 # Creating an integration
-A simple HTTP POST request to our API will create an *integration request* which will appear in ProQuant's mobile app and must be approved by the user. Once approved, the user may *enable* this integration for any of their running strategies. A running strategy will forward signals to all of its *enabled* integrations.
+A simple HTTP POST request to our API will create an *Integration request* which will appear in ProQuant's mobile app and must be approved by the user. Once approved, the user may *enable* this Integration for any of their running strategies. A running strategy will forward signals to all of its *enabled* Integrations.
 
-An *integration* in ProQuant (actually called a *Connected Account* in the app), includes a *name*, *description*, and *avatar*. However, the most important piece of information in an *integration* is the  *webhook* property. It contains a *url* and some *headers*, and we use these ... TODO.
-
-The request for creating an *integration request*:
+The request for creating an *Integration request*:
 
 `POST https://www.proquant.com/api/integrations/v1/integrations`
 ```javascript
@@ -58,7 +56,7 @@ The request for creating an *integration request*:
 }
 ```
 
-Once the user has *approved* the integration from inside ProQuant's mobile application, the setup is done and they may enable this integration for one or more of their running strategies.
+Once the user has *approved* the Integration from inside ProQuant's mobile application, the setup is done and they may enable this Integration for one or more of their running strategies.
 
 At this point, Events will start arriving at `webhook.url`.
 
@@ -68,7 +66,7 @@ Let's first take a look at how *versioning* works.
 ### Versioning
 In order to achieve backwards-compatibility, when breaking changes must be made, a simple versioning system must be adhered to when consuming ProQuant Events.
 
-Every request we send to `webhook.url` includes a single event, formatted in all currently supported version formats, alongside meta information about the status of every single version:
+Every request we send to `webhook.url` includes a single Event, formatted in all currently supported version formats, alongside meta information about the status of every single version:
 
 POST `webhook.url` Request payload
 ```
@@ -90,7 +88,7 @@ POST `webhook.url` Request payload
 
 *DISCLAIMER: The above is just an example, you can find our currently supported versions and their deprecation status further in the guide*
 
-In the example above we support two versions - `v1` and `v2`. `deprecation` signifies the status of the version - if `null`, this version is the latest and actively supported and maintained by us. However, `deprecation` could be a date in the ISO format - in that case, this version is no longer supported by us, and, after the specified date has passed, data for this version will no longer be included in any requests we send your way. It is your responsibility to track the value of `deprecation` and make steps towards implementing the latest version so as not to break your client's integrations.
+In the example above we support two versions - `v1` and `v2`. `deprecation` signifies the status of the version - if `null`, this version is the latest and actively supported and maintained by us. However, `deprecation` could be a date in the ISO format - in that case, this version is no longer supported by us, and, after the specified date has passed, data for this version will no longer be included in any requests we send your way. It is your responsibility to track the value of `deprecation` and make steps towards implementing the latest version so as not to break your client's Integrations.
 
 New versions will be released when breaking, non-backwards-compatible changes are introduced. This should happen rarely, if at all, and support for old versions will be continued long enough to allow you to upgrade without rush.
 
@@ -114,11 +112,11 @@ All Events have common structure and properties:
 
 | Type | What happened | data |
 | ------ | ------ | ------ |
-| INTEGRATION_APPROVED | The user approved the integration request | `null` |
-| INTEGRATION_REJECTED | The user rejected the integration request | `null` |
-| INTEGRATION_DELETED | The user deleted a previously approved integration | `null` |
-| STRATEGY_ENABLED | The user enabled the integration for one of their strategies. Enabling an integration means that whenever the strategy produces signals, they will be sent to that integration as Events. | [StrategyEventData](#v1-strategy-event-data) |
-| STRATEGY_DISABLED | The user disabled the integration for one of their strategies. Disabling an integration means that the integration will stop receiving signal Events from this strategy | [StrategyEventData](#v1-strategy-event-data)
+| INTEGRATION_APPROVED | The user approved the Integration request | `null` |
+| INTEGRATION_REJECTED | The user rejected the Integration request | `null` |
+| INTEGRATION_DELETED | The user deleted a previously approved Integration | `null` |
+| STRATEGY_ENABLED | The user enabled the Integration for one of their strategies. Enabling an Integration means that whenever the strategy produces signals, they will be sent to that Integration as Events. | [StrategyEventData](#v1-strategy-event-data) |
+| STRATEGY_DISABLED | The user disabled the Integration for one of their strategies. Disabling an Integration means that the Integration will stop receiving signal Events from this strategy | [StrategyEventData](#v1-strategy-event-data)
 | SIGNAL_OPEN | One of the user's running strategies produced a signal to open a position. | [SignalEventData](#v1-signal-event-data) |
 | SIGNAL_CLOSE | One of the user's running strategies produced a signal to close its opened position. | [SignalEventData](#v1-signal-event-data)
 | SIGNAL_REOPEN | One of the user's running strategies produced a signal to close its opened position and then immediately open a new one in the opposite direction (the `direction` property in the data signifies the *new* position direction). | [SignalEventData](#v1-signal-event-data)
@@ -186,9 +184,9 @@ We've covered what Events are and what type of ProQuant Events you may receive. 
 # Responding to Events
 If all goes well and the Event has been handled successfully, *or is irrelevant to you and you did not consume/handle it at all*, simply respond with status code 200 and an empty body.
 
-In case of an error, ProQuant clients will receive a push notification informing them that something went wrong with the integration. What this notification will be, depends on the way you respond to the request. We understand, handle and support a predefined set of responses, which translate into well-designed errors shown to clients. If you respond with a status code >= 400 and we do not support that type of response, we will fall back to a Generic error notification.
+In case of an error, ProQuant clients will receive a push notification informing them that something went wrong with the Integration. What this notification will be, depends on the way you respond to the request. We understand, handle and support a predefined set of responses, which translate into well-designed errors shown to clients. If you respond with a status code >= 400 and we do not support that type of response, we will fall back to a Generic error notification.
 
-Implementing and returning these specific Event Errors is optional, but recommended, as it would give clients a better overview of what went wrong with their integration.
+Implementing and returning these specific Event Errors is optional, but recommended, as it would give clients a better overview of what went wrong with their Integration.
 
 Here are the requirements for an error response to be correctly parsed by us:
 
@@ -209,10 +207,10 @@ i. InvalidCredentials
 | Type | When to use |
 | ------ | ------ |
 | InsufficientFunds | The user's account in your system did not have enough funds to handle the SIGNAL_OPEN Event. |
-| QuantityTooLow | The requested quantity in the SIGNAL_OPEN event is lower than the minimum allowed in your system, for the requested ticker |
-| QuantityTooHigh | The requested quantity in the SIGNAL_OPEN event is higher than the maximum allowed in your system, for the requested ticker  |
-| InvalidQuantityPrecision | The requested quantity's precision in the SIGNAL_OPEN event is not supported by your system (e.g. buying 0.0001 units of XAUUSD |
-| UnsupportedInstrument | The requested instrument in the SIGNAL_OPEN event is not supported by your system |
+| QuantityTooLow | The requested quantity in the SIGNAL_OPEN Event is lower than the minimum allowed in your system, for the requested ticker |
+| QuantityTooHigh | The requested quantity in the SIGNAL_OPEN Event is higher than the maximum allowed in your system, for the requested ticker  |
+| InvalidQuantityPrecision | The requested quantity's precision in the SIGNAL_OPEN Event is not supported by your system (e.g. buying 0.0001 units of XAUUSD |
+| UnsupportedInstrument | The requested instrument in the SIGNAL_OPEN Event is not supported by your system |
 | PositionAlreadyExists | A strategy can have up to 1 positions open at any given time. If you receive SIGNAL_OPEN from a strategy that already has an open position in your system, you should error out with PositionAlreadyExists. |
 | MarketClosed | You received SIGNAL_OPEN or SIGNAL_CLOSED, but the market is closed according to your system, and you cannot execute the trade |
 | PositionNotFound | You received SIGNAL_CLOSED but there isn't any open position from this strategy in your system |
