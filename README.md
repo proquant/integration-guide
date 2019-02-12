@@ -1,3 +1,11 @@
+- [Introduction](#introduction)
+- [Overview](#overview)
+- [Requirements](#requirements)
+- [What's an Integration](#whats-an-integration)
+- [Creating an Integration](#creating-an-integration)
+- [Handling Events](#handling-events)
+- [Responding to Events](#responding-to-events)
+
 # Introduction
 Welcome to the ProQuant Integration guide!
 
@@ -37,7 +45,7 @@ An Integration is data that describes a destination for ProQuant Events to be de
 
 All of these properties above are defined by you, at the moment of creating the Integration.
 
-# Creating an integration
+# Creating an Integration
 A simple HTTP POST request to our API will create an *Integration request* which will appear in ProQuant's mobile app and must be approved by the user. Once approved, the user may *enable* this Integration for any of their running strategies. A running strategy will forward signals to all of its *enabled* Integrations.
 
 The request for creating an *Integration request*:
