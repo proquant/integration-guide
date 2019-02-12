@@ -200,7 +200,7 @@ Here are the requirements for an error response to be correctly parsed by us:
 | InsufficientFunds | The user's account in your system did not have enough funds to handle the SIGNAL_OPEN Event. |
 | QuantityTooLow | The requested quantity in the SIGNAL_OPEN Event is lower than the minimum allowed in your system, for the requested ticker |
 | QuantityTooHigh | The requested quantity in the SIGNAL_OPEN Event is higher than the maximum allowed in your system, for the requested ticker  |
-| InvalidQuantityPrecision | The requested quantity's precision in the SIGNAL_OPEN Event is not supported by your system (e.g. buying 0.0001 units of XAUUSD |
+| InvalidQuantityPrecision | The requested quantity's precision in the SIGNAL_OPEN Event is not supported by your system (e.g. buying 0.0001 units of XAUUSD) |
 | UnsupportedInstrument | The requested instrument in the SIGNAL_OPEN Event is not supported by your system |
 | PositionAlreadyExists | A strategy can have up to 1 positions open at any given time. If you receive SIGNAL_OPEN from a strategy that already has an open position in your system, you should error out with PositionAlreadyExists. |
 | MarketClosed | You received SIGNAL_OPEN or SIGNAL_CLOSE, but the market is closed according to your system, and you cannot execute the trade |
